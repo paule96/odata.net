@@ -125,7 +125,21 @@ namespace Microsoft.OData.Evaluation
         /// <returns>The the computed and non-computed entity properties.</returns>
         internal virtual IEnumerable<ODataProperty> GetProperties(IEnumerable<ODataProperty> nonComputedProperties)
         {
-            return nonComputedProperties == null ? null : nonComputedProperties.Where(p => !(p.ODataValue is ODataStreamReferenceValue));
+            return nonComputedProperties == null ? null : nonComputedProperties.Where(p =>
+            {
+                if (p.ODataValue is ODataStreamReferenceValue || p.ODataValue is ODataResourceValue)
+                {
+                    return false;
+                }
+
+                ODataCollectionValue collectionValue = p.ODataValue as ODataCollectionValue;
+                if (collectionValue != null && collectionValue.Items != null && collectionValue.Items.Any(t => t is ODataResourceValue))
+                {
+                    return false;
+                }
+
+                return true;
+            });
         }
 
         /// <summary>
